@@ -2,6 +2,7 @@ package com.acc.stocks.gateway;
 
 import com.acc.stocks.config.ApplicationConfig;
 import org.apache.log4j.Logger;
+import org.springframework.boot.SpringApplication;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class SimpleStocksGateway {
@@ -13,13 +14,7 @@ public class SimpleStocksGateway {
     }
 
     public void start() {
-        try {
-            AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ApplicationConfig.class);
-            context.registerShutdownHook();
-            context.start();
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage());
-        }
+        SpringApplication.run(ApplicationConfig.class);
         LOGGER.info("Simple stock app started");
     }
 }

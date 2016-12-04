@@ -20,5 +20,4 @@ public class ApplicationConfig {
         threadPoolTaskExecutor.initialize();
         return threadPoolTaskExecutor;
     }
-
 }

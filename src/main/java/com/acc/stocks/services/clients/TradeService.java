@@ -132,6 +132,7 @@ public class TradeService extends BaseService {
 
     @Override
     public void run() {
+        LOGGER.info("Start thread "+this.getClass().getSimpleName());
         while(!getStop()) {
             try {
                 StockModel stockModel = (StockModel)stockDataRepository.getRecord(getRandomStockSymbolValue().name());

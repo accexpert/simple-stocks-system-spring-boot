@@ -2,7 +2,6 @@ package com.acc.stocks.repositories;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 public interface IDataRepository<T> {
     void addRecord(T stock) throws SQLException;

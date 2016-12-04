@@ -1,10 +1,6 @@
 package com.acc.stocks.services.clients;
 
-import com.acc.stocks.events.IEventHandler;
-import com.acc.stocks.events.IEventObserver;
 import com.acc.stocks.messaging.events.ApplicationWriteOutputEvent;
-import com.acc.stocks.models.MessageEventModel;
-import com.acc.stocks.models.enums.EventTypes;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -25,8 +21,8 @@ public class GuiService extends BaseService {
     private List<String> guiListContent;
 
     @Autowired
-    public GuiService(IWriterHandler consoleWriterService, IEventHandler eventHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-        super(consoleWriterService, eventHandler);
+    public GuiService(IWriterHandler consoleWriterService, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+        super(consoleWriterService);
         this.guiListContent = new ArrayList<>();
         threadPoolTaskExecutor.execute(this);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
@@ -34,6 +30,7 @@ public class GuiService extends BaseService {
 
     @Override
     public void run() {
+        LOGGER.info("Start thread "+this.getClass().getSimpleName());
         while(!getStop()) {
             try {
                 Thread.sleep(1000);

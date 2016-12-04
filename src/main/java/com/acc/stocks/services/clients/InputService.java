@@ -1,10 +1,6 @@
 package com.acc.stocks.services.clients;
 
-import com.acc.stocks.events.IEventHandler;
-import com.acc.stocks.events.IEventObserver;
 import com.acc.stocks.messaging.events.*;
-import com.acc.stocks.models.MessageEventModel;
-import com.acc.stocks.models.enums.EventTypes;
 import com.acc.stocks.models.enums.StockSymbols;
 import com.acc.stocks.utils.Constants;
 import org.apache.log4j.Logger;
@@ -38,6 +34,7 @@ public class InputService extends BaseService {
         String inputLine;
         try {
             scanner = new Scanner(System.in);
+            LOGGER.info("Start thread "+this.getClass().getSimpleName());
             while (!getStop()) {
                 showAvailableOptions();
                 inputLine = scanner.nextLine();
@@ -48,7 +45,6 @@ public class InputService extends BaseService {
                         this.threadPoolTaskExecutor.shutdown();
                         break;
                     case CALCULATE:
-
                         if(inputValues.length<2) {
                             publisher.publishEvent(new ApplicationWriteOutputEvent("Error. Stock symbol not entered"));
                             break;

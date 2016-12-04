@@ -17,13 +17,15 @@ import java.util.Scanner;
 @Service(value = "inputService")
 public class InputService extends BaseService implements IEventObserver {
     private static final Logger LOGGER = Logger.getLogger(InputService.class);
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     @Autowired
     public InputService(IWriterHandler consoleWriterService, IEventHandler eventHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         super(consoleWriterService, eventHandler);
         eventHandler.register(EventTypes.RENDER_USER_OPTIONS, this);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
-        threadPoolTaskExecutor.execute(this);
+        this.threadPoolTaskExecutor = threadPoolTaskExecutor;
+        this.threadPoolTaskExecutor.execute(this);
     }
 
     @Override
@@ -40,6 +42,7 @@ public class InputService extends BaseService implements IEventObserver {
                     case QUIT:
                         getEventHandler().publish(new MessageEventModel(EventTypes.EXIT, null));
                         setStop(true);
+                        this.threadPoolTaskExecutor.shutdown();
                         break;
                     case CALCULATE:
                         if(inputValues.length<2) {

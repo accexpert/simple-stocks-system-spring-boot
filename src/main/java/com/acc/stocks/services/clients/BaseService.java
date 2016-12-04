@@ -1,15 +1,16 @@
 package com.acc.stocks.services.clients;
 
-import com.acc.stocks.events.IEventHandler;
+import com.acc.stocks.messaging.events.ApplicationExitEvent;
+import org.apache.log4j.Logger;
+import org.springframework.context.event.EventListener;
 
 public abstract class BaseService implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(BaseService.class);
     private IWriterHandler writerHandler;
-    private IEventHandler eventHandler;
     private Boolean stop;
 
-    public BaseService(IWriterHandler writerHandler, IEventHandler eventHandler) {
+    public BaseService(IWriterHandler writerHandler) {
         this.writerHandler = writerHandler;
-        this.eventHandler = eventHandler;
         this.stop = false;
     }
 
@@ -25,7 +26,9 @@ public abstract class BaseService implements Runnable {
         return writerHandler;
     }
 
-    public IEventHandler getEventHandler() {
-        return eventHandler;
+    @EventListener
+    public void applicationExitEventListener(ApplicationExitEvent applicationExitEvent) {
+        LOGGER.info("Exit event received in service "+this.getClass().getSimpleName());
+        this.stop = true;
     }
 }

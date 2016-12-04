@@ -2,12 +2,15 @@ package com.acc.stocks.services.clients;
 
 import com.acc.stocks.events.IEventHandler;
 import com.acc.stocks.events.IEventObserver;
+import com.acc.stocks.messaging.events.*;
 import com.acc.stocks.models.MessageEventModel;
 import com.acc.stocks.models.enums.EventTypes;
 import com.acc.stocks.models.enums.StockSymbols;
 import com.acc.stocks.utils.Constants;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +18,15 @@ import java.util.EnumSet;
 import java.util.Scanner;
 
 @Service(value = "inputService")
-public class InputService extends BaseService implements IEventObserver {
+public class InputService extends BaseService {
     private static final Logger LOGGER = Logger.getLogger(InputService.class);
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
     @Autowired
-    public InputService(IWriterHandler consoleWriterService, IEventHandler eventHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-        super(consoleWriterService, eventHandler);
-        eventHandler.register(EventTypes.RENDER_USER_OPTIONS, this);
+    public InputService(IWriterHandler consoleWriterService, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+        super(consoleWriterService);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
         this.threadPoolTaskExecutor = threadPoolTaskExecutor;
         this.threadPoolTaskExecutor.execute(this);
@@ -40,30 +44,30 @@ public class InputService extends BaseService implements IEventObserver {
                 String[] inputValues = inputLine.split(" ");
                 switch (InputOptions.getOption(inputValues[0].trim())) {
                     case QUIT:
-                        getEventHandler().publish(new MessageEventModel(EventTypes.EXIT, null));
-                        setStop(true);
+                        publisher.publishEvent(new ApplicationExitEvent());
                         this.threadPoolTaskExecutor.shutdown();
                         break;
                     case CALCULATE:
+
                         if(inputValues.length<2) {
-                            getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Error. Stock symbol not entered"));
+                            publisher.publishEvent(new ApplicationWriteOutputEvent("Error. Stock symbol not entered"));
                             break;
                         }
                         if(StockSymbols.getSymbol(inputValues[1].trim()) == null) {
-                            getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Error. Unknown stock symbol: "+inputValues[1]));
+                            publisher.publishEvent(new ApplicationWriteOutputEvent("Error. Unknown stock symbol: "+inputValues[1]));
                             break;
                         }
-                        getEventHandler().publish(new MessageEventModel(EventTypes.CALCULATE_STOCK, StockSymbols.getSymbol(inputValues[1].trim())));
+                        publisher.publishEvent(new ApplicationCalculateStockEvent(StockSymbols.getSymbol(inputValues[1].trim())));
                         break;
                     case RENDER_STOCKS:
                         if(inputValues.length < 2) {
-                            getEventHandler().publish(new MessageEventModel(EventTypes.RENDER_STOCK_DATA, null));
+                            publisher.publishEvent(new ApplicationRenderStockDataEvent(null));
                             break;
                         }
-                        getEventHandler().publish(new MessageEventModel(EventTypes.RENDER_STOCK_DATA, StockSymbols.getSymbol(inputValues[1].trim())));
+                        publisher.publishEvent(new ApplicationRenderStockDataEvent(StockSymbols.getSymbol(inputValues[1].trim())));
                         break;
                     default:
-                        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Unknown option. Please try again"));
+                        publisher.publishEvent(new ApplicationWriteOutputEvent("Unknown option. Please try again"));
                         break;
                 }
             }
@@ -77,29 +81,22 @@ public class InputService extends BaseService implements IEventObserver {
         LOGGER.info(this.getClass().getSimpleName()+" service closed.");
     }
 
-    @Override
-    public void notifyEvent(MessageEventModel event) {
-        if(EventTypes.EXIT.equals(event.getEventType())) {
-            setStop(true);
-            return;
-        }
-        if(EventTypes.RENDER_USER_OPTIONS.equals(event.getEventType())) {
-            showAvailableOptions();
-            return;
-        }
+    @EventListener
+    public void applicationRenderUserOptionEventListener(ApplicationRenderUserOptionsEvent applicationRenderUserOptionsEvent) {
+        showAvailableOptions();
     }
 
     public void showAvailableOptions() {
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, Constants.LINE_SEPARATOR));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Available options"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Quit application: q"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Calculate data for stock: c"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "      Example: c TEA"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Display stocks: s"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "      Example: s -> show all stocks records"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "      Example: s TEA -> show TEA record"));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, Constants.LINE_SEPARATOR));
-        getEventHandler().publish(new MessageEventModel(EventTypes.WRITE_OUTPUT, "Select option: "));
+        publisher.publishEvent(new ApplicationWriteOutputEvent(Constants.LINE_SEPARATOR));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("Available options"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("Quit application: q"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("Calculate data for stock: c"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("      Example: c TEA"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("Display stocks: s"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("      Example: s -> show all stocks records"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("      Example: s TEA -> show TEA record"));
+        publisher.publishEvent(new ApplicationWriteOutputEvent(Constants.LINE_SEPARATOR));
+        publisher.publishEvent(new ApplicationWriteOutputEvent("Select option: "));
     }
 
     public enum InputOptions {

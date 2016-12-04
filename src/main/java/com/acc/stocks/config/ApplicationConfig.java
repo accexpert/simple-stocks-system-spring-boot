@@ -1,6 +1,5 @@
 package com.acc.stocks.config;
 
-import com.acc.stocks.services.clients.*;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,14 +12,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class ApplicationConfig {
 
     @Bean
-    public ThreadPoolTaskExecutor threadPoolTaskExecutor(BaseService tradeService, BaseService inputService, BaseService guiService) {
+    public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(3);
-        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
+        threadPoolTaskExecutor.setMaxPoolSize(10);
+        threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(true);
         threadPoolTaskExecutor.initialize();
-        threadPoolTaskExecutor.execute(tradeService);
-        threadPoolTaskExecutor.execute(inputService);
-        threadPoolTaskExecutor.execute(guiService);
         return threadPoolTaskExecutor;
     }
 

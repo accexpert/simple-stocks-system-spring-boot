@@ -6,6 +6,7 @@ import com.acc.stocks.models.MessageEventModel;
 import com.acc.stocks.models.enums.EventTypes;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,11 +23,12 @@ public class GuiService extends BaseService implements IEventObserver {
     private List<String> guiListContent;
 
     @Autowired
-    public GuiService(IWriterHandler consoleWriterService, IEventHandler eventHandler) {
+    public GuiService(IWriterHandler consoleWriterService, IEventHandler eventHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         super(consoleWriterService, eventHandler);
         this.guiListContent = new ArrayList<>();
         eventHandler.register(EventTypes.WRITE_OUTPUT, this);
         eventHandler.register(EventTypes.EXIT, this);
+        threadPoolTaskExecutor.execute(this);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
     }
 

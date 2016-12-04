@@ -8,6 +8,7 @@ import com.acc.stocks.models.enums.StockSymbols;
 import com.acc.stocks.utils.Constants;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumSet;
@@ -18,10 +19,11 @@ public class InputService extends BaseService implements IEventObserver {
     private static final Logger LOGGER = Logger.getLogger(InputService.class);
 
     @Autowired
-    public InputService(IWriterHandler consoleWriterService, IEventHandler eventHandler) {
+    public InputService(IWriterHandler consoleWriterService, IEventHandler eventHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         super(consoleWriterService, eventHandler);
         eventHandler.register(EventTypes.RENDER_USER_OPTIONS, this);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
+        threadPoolTaskExecutor.execute(this);
     }
 
     @Override

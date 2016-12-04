@@ -17,6 +17,7 @@ import com.acc.stocks.utils.NumberUtils;
 import com.acc.stocks.utils.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -36,7 +37,8 @@ public class TradeService extends BaseService implements IEventObserver {
     private TradeCalculationsHandler tradeCalculationsHandler;
 
     @Autowired
-    public TradeService(IWriterHandler consoleWriterHandler, IEventHandler eventHandler, IDataRepository tradeDataRepository, IDataRepository stockDataRepository, TradeCalculationsHandler tradeCalculationsHandler) {
+    public TradeService(IWriterHandler consoleWriterHandler, IEventHandler eventHandler, IDataRepository tradeDataRepository, IDataRepository stockDataRepository,
+                        TradeCalculationsHandler tradeCalculationsHandler, ThreadPoolTaskExecutor threadPoolTaskExecutor) {
         super(consoleWriterHandler, eventHandler);
         this.tradeDataRepository = tradeDataRepository;
         this.stockDataRepository = stockDataRepository;
@@ -49,6 +51,7 @@ public class TradeService extends BaseService implements IEventObserver {
         } catch (SQLException ex) {
             LOGGER.error(ex.getMessage());
         }
+        threadPoolTaskExecutor.execute(this);
         LOGGER.info(this.getClass().getSimpleName()+" created.");
     }
 
